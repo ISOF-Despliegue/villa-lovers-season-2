@@ -53,6 +53,19 @@ app.get('/multiplicacion', (req, res) => {
     res.json({ resultado: numero1 * numero2 });
 });
 
+// DIVISIÓN
+app.get('/division', (req, res) => {
+    const { numero1, numero2, error } = validarNumeros(req.query);
+
+    if (error) return res.status(400).json({ error });
+
+    if (numero2 === 0) {
+        return res.status(400).json({ error: 'No se puede dividir entre 0' });
+    }
+
+    res.json({ resultado: numero1 / numero2 });
+});
+
 app.listen(port, () => {
     console.log(`Servidor corriendo en puerto ${port}`);
 });
