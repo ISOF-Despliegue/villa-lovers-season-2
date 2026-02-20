@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "Miguel Eduardo Escobar Ladrón de Guevara\r Alan Raziel Filobello Aguilar\r Uriel Cendón Díaz",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "start": "set NODE_ENV=production && node index.js",
+  "dev": "set NODE_ENV=development && node --watch index.js"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ISOF-Despliegue/villa-lovers-season-2.git"

@@ -1,10 +1,17 @@
 require('dotenv').config();
-
 const express = require('express');
+
 const app = express();
 
-const port = process.env.PORT || 3000;
+// Detectar entorno
+const isDev = process.env.NODE_ENV === 'development';
 
+// Seleccionar puerto según entorno
+const port = isDev
+    ? process.env.DEV_PORT || 4000
+    : process.env.PORT || 3000;
+
+// Función para validar números
 function validarNumeros(query) {
     const keys = Object.keys(query);
 
@@ -29,7 +36,6 @@ function validarNumeros(query) {
 // SUMA
 app.get('/suma', (req, res) => {
     const { numero1, numero2, error } = validarNumeros(req.query);
-
     if (error) return res.status(400).json({ error });
 
     res.json({ resultado: numero1 + numero2 });
@@ -38,16 +44,14 @@ app.get('/suma', (req, res) => {
 // RESTA
 app.get('/resta', (req, res) => {
     const { numero1, numero2, error } = validarNumeros(req.query);
-
     if (error) return res.status(400).json({ error });
 
     res.json({ resultado: numero1 - numero2 });
 });
 
-// MULTIPLICACION
+// MULTIPLICACIÓN
 app.get('/multiplicacion', (req, res) => {
     const { numero1, numero2, error } = validarNumeros(req.query);
-
     if (error) return res.status(400).json({ error });
 
     res.json({ resultado: numero1 * numero2 });
@@ -56,7 +60,6 @@ app.get('/multiplicacion', (req, res) => {
 // DIVISIÓN
 app.get('/division', (req, res) => {
     const { numero1, numero2, error } = validarNumeros(req.query);
-
     if (error) return res.status(400).json({ error });
 
     if (numero2 === 0) {
