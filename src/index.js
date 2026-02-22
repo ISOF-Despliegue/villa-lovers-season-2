@@ -3,6 +3,10 @@ const express = require('express');
 
 const app = express();
 
+app.use(express.json());
+
+let memoria = 0;
+
 // Detectar entorno
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -67,6 +71,52 @@ app.get('/division', (req, res) => {
     }
 
     res.json({ resultado: numero1 / numero2 });
+});
+
+/**
+ * POST /sumar-lista
+ * Sirve para: Enviar un conjunto de datos para ser sumados.
+ */
+app.post('/sumar-lista', (req, res) => {
+    const { numeros } = req.body;
+
+    if (!Array.isArray(numeros)) {
+        return res.status(400).json({ error: 'Debes enviar un arreglo de números bajo la clave "numeros"' });
+    }
+
+    const sumaTotal = numeros.reduce((acc, n) => acc + (parseFloat(n) || 0), 0);
+
+    res.status(201).json({ 
+        mensaje: "Operación de creación de suma realizada",
+        resultado: sumaTotal 
+    });
+});
+
+/**
+ * PUT /memoria
+ * Sirve para: Reemplazar o establecer un valor específico en un recurso existente.
+ * En este caso, actualizamos el valor de la "memoria" global del servidor.
+ */
+app.put('/memoria', (req, res) => {
+    const { nuevoValor } = req.body;
+
+    if (nuevoValor === undefined || isNaN(parseFloat(nuevoValor))) {
+        return res.status(400).json({ error: 'Debes proporcionar un "nuevoValor" numérico' });
+    }
+
+    memoria = parseFloat(nuevoValor);
+
+    res.json({ 
+        mensaje: "Memoria actualizada correctamente",
+        valorEnMemoria: memoria 
+    });
+});
+
+/**
+ * GET /memoria (para verificar el PUT)
+ */
+app.get('/memoria', (req, res) => {
+    res.json({ valorEnMemoria: memoria });
 });
 
 app.listen(port, () => {
