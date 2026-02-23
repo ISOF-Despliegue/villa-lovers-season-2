@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 
 let memoria = 0;
+let multiplicador = 1;
 
 // Detectar entorno
 const isDev = process.env.NODE_ENV === 'development';
@@ -117,6 +118,54 @@ app.put('/memoria', (req, res) => {
  */
 app.get('/memoria', (req, res) => {
     res.json({ valorEnMemoria: memoria });
+});
+
+/**
+ * POST /promedio
+ * Sirve para: Calcular el promedio de un array de números.
+ */
+app.post('/promedio', (req, res) => {
+    const { numeros } = req.body;
+
+    if (!Array.isArray(numeros) || numeros.length === 0) {
+        return res.status(400).json({ error: 'Debes enviar un arreglo no vacío de números bajo la clave "numeros"' });
+    }
+
+    const sumaTotal = numeros.reduce((acc, n) => acc + (parseFloat(n) || 0), 0);
+    const promedio = sumaTotal / numeros.length;
+
+    res.status(201).json({ 
+        mensaje: "Promedio calculado correctamente",
+        promedio: promedio,
+        total: sumaTotal,
+        cantidad: numeros.length
+    });
+});
+
+/**
+ * PUT /multiplicador
+ * Sirve para: Establecer un valor multiplicador que afecta los resultados.
+ */
+app.put('/multiplicador', (req, res) => {
+    const { valor } = req.body;
+
+    if (valor === undefined || isNaN(parseFloat(valor))) {
+        return res.status(400).json({ error: 'Debes proporcionar un "valor" numérico' });
+    }
+
+    multiplicador = parseFloat(valor);
+
+    res.json({ 
+        mensaje: "Multiplicador actualizado correctamente",
+        multiplicadorActual: multiplicador 
+    });
+});
+
+/**
+ * GET /multiplicador (para verificar el PUT)
+ */
+app.get('/multiplicador', (req, res) => {
+    res.json({ multiplicadorActual: multiplicador });
 });
 
 app.listen(port, () => {
