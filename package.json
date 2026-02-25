@@ -4,8 +4,8 @@
   "description": "Miguel Eduardo Escobar Ladrón de Guevara\r Alan Raziel Filobello Aguilar\r Uriel Cendón Díaz",
   "main": "index.js",
 "scripts": {
-  "start": "node src/index.js",
-  "dev": "node --watch src/index.js"
+  "start": "set NODE_ENV=production && node src/index.js",
+  "dev": "set NODE_ENV=development && node --watch src/index.js"
 },
   "repository": {
     "type": "git",
