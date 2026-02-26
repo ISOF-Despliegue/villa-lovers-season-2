@@ -3,6 +3,7 @@ const express = require('express');
 
 const app = express();
 
+app.use(express.static('public'));
 app.use(express.json());
 
 let memoria = 0;
@@ -166,6 +167,48 @@ app.put('/multiplicador', (req, res) => {
  */
 app.get('/multiplicador', (req, res) => {
     res.json({ multiplicadorActual: multiplicador });
+});
+
+/**
+ * PATCH /memoria
+ * Sumamos un valor a la memoria existente en lugar de reemplazarla
+ */
+app.patch('/memoria', (req, res) => {
+    const { incremento } = req.body;
+
+    if (incremento === undefined || isNaN(parseFloat(incremento))) {
+        return res.status(400).json({ error: 'Debes proporcionar un incremento numérico' });
+    }
+
+    memoria += parseFloat(incremento);
+
+    res.json({ 
+        mensaje: "Memoria incrementada correctamente",
+        valorActual: memoria 
+    });
+});
+
+/**
+ * DELETE /memoria
+ */
+app.delete('/memoria', (req, res) => {
+    memoria = 0;
+    res.json({ 
+        mensaje: "Memoria limpiada correctamente",
+        valorEnMemoria: memoria 
+    });
+});
+
+/**
+ * DELETE /multiplicador
+ * restablece el multiplicador a su valor original (1).
+ */
+app.delete('/multiplicador', (req, res) => {
+    multiplicador = 1;
+    res.json({ 
+        mensaje: "Multiplicador restablecido a 1",
+        multiplicadorActual: multiplicador 
+    });
 });
 
 app.listen(port, () => {

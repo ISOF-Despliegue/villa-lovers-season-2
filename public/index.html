@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora UV - Despliegue de Software</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Calculadora UV - Despliegue de Software</h1>
+
+    <div class="status-bar">
+        Memoria: <b id="valMemoria">0</b> | 
+        Multiplicador: <b id="valMulti">1</b>
+    </div>
+
+    <div class="resultado-container">
+        <h2>Resultado: <span id="resultado">0</span></h2>
+    </div>
+
+    <section>
+        <h3>Operaciones Básicas (GET)</h3>
+        <input type="number" id="n1" placeholder="Núm 1">
+        <input type="number" id="n2" placeholder="Núm 2">
+        <div class="btn-group">
+            <button onclick="operacionBasica('suma')">Sumar</button>
+            <button onclick="operacionBasica('resta')">Restar</button>
+            <button onclick="operacionBasica('multiplicacion')">Multiplicar</button>
+            <button onclick="operacionBasica('division')">Dividir</button>
+        </div>
+    </section>
+
+    <section>
+        <h3>Listas (POST)</h3>
+        <input type="text" id="listaNumeros" placeholder="Ej: 10, 20, 30" style="width: 80%;">
+        <div class="btn-group">
+            <button class="btn-post" onclick="operacionLista('sumar-lista')">Sumar Todo</button>
+            <button class="btn-post" onclick="operacionLista('promedio')">Promedio</button>
+        </div>
+    </section>
+
+    <section>
+        <h3>Controles (PUT/PATCH/DELETE)</h3>
+        <input type="number" id="inputEstado" placeholder="Valor">
+        <div class="btn-group">
+            <button onclick="gestionarMemoria('PUT')">Colocar memoria</button>
+            <button class="btn-patch" onclick="gestionarMemoria('PATCH')">Añadir a memoria</button>
+            <button class="btn-delete" onclick="gestionarMemoria('DELETE')">Limpiar memoria</button>
+        </div>
+        <div class="btn-group" style="margin-top: 15px;">
+            <button onclick="gestionarMultiplicador('PUT')">Colocar multiplicador</button>
+            <button class="btn-delete" onclick="gestionarMultiplicador('DELETE')">Limpiar multiplicador</button>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

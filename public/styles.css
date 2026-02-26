@@ -1,0 +1,74 @@
+/* Paleta de colores y estilos generales */
+:root {
+    --primary-color: #0056b3;
+    --secondary-color: #6c757d;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --accent-color: #28a745;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+}
+
+h1 { color: var(--primary-color); margin-bottom: 30px; }
+
+/* Contenedores de secciones */
+section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 25px;
+    width: 100%;
+    max-width: 600px;
+}
+
+h3 { border-bottom: 2px solid var(--bg-color); padding-bottom: 10px; margin-top: 0; }
+
+/* Estilos de inputs y botones */
+input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: 5px;
+    font-size: 16px;
+}
+
+.btn-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+button:hover { background-color: #004494; }
+
+/* Colores específicos para acciones */
+.btn-post { background-color: var(--accent-color); }
+.btn-delete { background-color: #dc3545; }
+.btn-patch { background-color: #ffc107; color: #000; }
+
+/* Resultados y estado */
+.resultado-container {
+    background: #e9ecef;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+}
+
+.status-bar { font-size: 0.9em; color: var(--secondary-color); margin-bottom: 15px; }
