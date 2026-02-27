@@ -1,9 +1,11 @@
+const API_URL = 'http://localhost:3000'; // URL del backend
+
 //operaciones GET (Suma, Resta, Multiplicación, División)
 async function operacionBasica(ruta) {
     const num1 = document.getElementById('n1').value;
     const num2 = document.getElementById('n2').value;
 
-    const respuesta = await fetch(`/${ruta}?num1=${num1}&num2=${num2}`);
+    const respuesta = await fetch(`${API_URL}/${ruta}?num1=${num1}&num2=${num2}`);
     const datos = await respuesta.json();
     mostrarEnPantalla(datos);
 }
@@ -14,7 +16,7 @@ async function operacionLista(ruta) {
     // Convierte el texto "10, 20, 30" en un arreglo de números real [10, 20, 30]
     const numeros = input.split(',').map(n => n.trim()).filter(n => n !== "");
 
-    const respuesta = await fetch(`/${ruta}`, {
+    const respuesta = await fetch(`${API_URL}/${ruta}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ numeros }) // Se envía el arreglo en el cuerpo de la petición
@@ -31,7 +33,7 @@ async function gestionarMemoria(metodo) {
     if (metodo === 'PUT') cuerpoPeticion = { nuevoValor: valor };
     if (metodo === 'PATCH') cuerpoPeticion = { incremento: valor };
 
-    const respuesta = await fetch('/memoria', {
+    const respuesta = await fetch(`${API_URL}/memoria`, {
         method: metodo,
         headers: { 'Content-Type': 'application/json' },
         body: cuerpoPeticion ? JSON.stringify(cuerpoPeticion) : null
@@ -46,7 +48,7 @@ async function gestionarMemoria(metodo) {
 async function gestionarMultiplicador(metodo) {
     const valor = document.getElementById('inputEstado').value;
     
-    const respuesta = await fetch('/multiplicador', {
+    const respuesta = await fetch(`${API_URL}/multiplicador`, {
         method: metodo,
         headers: { 'Content-Type': 'application/json' },
         body: metodo === 'PUT' ? JSON.stringify({ valor }) : null
@@ -75,11 +77,11 @@ function mostrarEnPantalla(datos) {
 // consulta el estado actual al abrir la página
 window.onload = async () => {
     try {
-        const resMem = await fetch('/memoria');
+        const resMem = await fetch(`${API_URL}/memoria`);
         const dataMem = await resMem.json();
         document.getElementById('valMemoria').innerText = dataMem.valorEnMemoria;
 
-        const resMult = await fetch('/multiplicador');
+        const resMult = await fetch(`${API_URL}/multiplicador`);
         const dataMult = await resMult.json();
         document.getElementById('valMulti').innerText = dataMult.multiplicadorActual;
     } catch (err) {
