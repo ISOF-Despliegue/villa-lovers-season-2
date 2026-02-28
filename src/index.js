@@ -232,6 +232,64 @@ app.delete('/multiplicador', (req, res) => {
     });
 });
 
+let miConstante = 0; 
+
+// GET: Raíz Cuadrada
+app.get('/raiz', (req, res) => {
+    const numero = parseFloat(req.query.numero);
+    if (isNaN(numero) || numero < 0) {
+        return res.status(400).json({ error: 'Proporciona un número válido mayor o igual a 0' });
+    }
+    res.json({ resultado: Math.sqrt(numero) });
+});
+
+// POST: Potencia
+app.post('/potencia', (req, res) => {
+    const { base, exponente } = req.body;
+    if (base === undefined || exponente === undefined || isNaN(base) || isNaN(exponente)) {
+        return res.status(400).json({ error: 'Proporciona base y exponente numéricos' });
+    }
+    res.status(201).json({ 
+        mensaje: "Potencia calculada correctamente",
+        resultado: Math.pow(parseFloat(base), parseFloat(exponente)) 
+    });
+});
+
+// PUT: Actualizar Constante Completa
+app.put('/constante', (req, res) => {
+    const { valor } = req.body;
+    if (valor === undefined || isNaN(parseFloat(valor))) {
+        return res.status(400).json({ error: 'Proporciona un "valor" numérico' });
+    }
+    miConstante = parseFloat(valor);
+    res.json({ 
+        mensaje: "Constante guardada (PUT) correctamente",
+        valorConstante: miConstante 
+    });
+});
+
+// PATCH: Modificar Constante Parcialmente (Sumar)
+app.patch('/constante', (req, res) => {
+    const { incremento } = req.body;
+    if (incremento === undefined || isNaN(parseFloat(incremento))) {
+        return res.status(400).json({ error: 'Proporciona un "incremento" numérico' });
+    }
+    miConstante += parseFloat(incremento);
+    res.json({ 
+        mensaje: "Constante incrementada (PATCH) correctamente",
+        valorConstante: miConstante 
+    });
+});
+
+// DELETE: Borrar Constante
+app.delete('/constante', (req, res) => {
+    miConstante = 0;
+    res.json({ 
+        mensaje: "Constante limpiada (regresada a 0)",
+        valorConstante: miConstante 
+    });
+});
+
 app.listen(port, () => {
     console.log(`Servidor corriendo en puerto ${port}`);
 });

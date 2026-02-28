@@ -103,3 +103,51 @@ window.onload = async () => {
         console.log("Error al conectar con el servidor:", err);
     }
 };
+
+async function calcularRaiz() {
+    const num = document.getElementById('numRaiz').value;
+    const respuesta = await fetch(`${API_URL}/raiz?numero=${num}`);
+    const datos = await respuesta.json();
+    mostrarEnPantalla(datos);
+}
+
+async function calcularPotencia() {
+    const base = document.getElementById('numBase').value;
+    const exponente = document.getElementById('numExp').value;
+    
+    const respuesta = await fetch(`${API_URL}/potencia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ base: base, exponente: exponente })
+    });
+    const datos = await respuesta.json();
+    mostrarEnPantalla(datos);
+}
+
+async function gestionarConstante(metodo) {
+    const valorInput = document.getElementById('inputConstante').value;
+    let cuerpoPeticion = null;
+
+    if (metodo === 'PUT') cuerpoPeticion = { valor: valorInput };
+    if (metodo === 'PATCH') cuerpoPeticion = { incremento: valorInput };
+    
+    const respuesta = await fetch(`${API_URL}/constante`, {
+        method: metodo,
+        headers: { 'Content-Type': 'application/json' },
+        body: cuerpoPeticion ? JSON.stringify(cuerpoPeticion) : null
+    });
+
+    const datos = await respuesta.json();
+    
+    if (!datos.error) {
+        document.getElementById('valConstante').innerText = datos.valorConstante;
+    }
+    
+    const spanResultado = document.getElementById('resultado');
+    if (datos.error) {
+        alert("Error del servidor: " + datos.error);
+        spanResultado.innerText = "Error";
+    } else {
+        spanResultado.innerText = datos.mensaje || datos.valorConstante;
+    }
+}

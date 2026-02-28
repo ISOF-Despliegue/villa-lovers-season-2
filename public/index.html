@@ -53,7 +53,35 @@
             <button onclick="consultarMultiplicador()">Consultar multiplicador</button>
         </div>
     </section>
+    <section style="border: 2px solid #0056b3; margin-top: 20px;">
+        <h3>Operaciones Avanzadas</h3>
+        
+        <div style="margin-bottom: 15px;">
+            <h4>Raíz Cuadrada (GET)</h4>
+            <input type="number" id="numRaiz" placeholder="Número">
+            <button onclick="calcularRaiz()">Calcular Raíz</button>
+        </div>
 
+        <div style="margin-bottom: 15px;">
+            <h4>Potencia (POST)</h4>
+            <input type="number" id="numBase" placeholder="Base">
+            <input type="number" id="numExp" placeholder="Exponente">
+            <button class="btn-post" onclick="calcularPotencia()">Calcular Potencia</button>
+        </div>
+
+        <div>
+            <h4>Mi Constante (PUT/PATCH/DELETE)</h4>
+            <p style="margin-bottom: 10px; color: #6c757d; font-size: 0.9em;">
+                Constante guardada en servidor: <b id="valConstante">0</b>
+            </p>
+            <input type="number" id="inputConstante" placeholder="Valor numérico">
+            <div class="btn-group">
+                <button onclick="gestionarConstante('PUT')">Guardar Constante (PUT)</button>
+                <button class="btn-patch" onclick="gestionarConstante('PATCH')">Sumar a Constante (PATCH)</button>
+                <button class="btn-delete" onclick="gestionarConstante('DELETE')">Borrar (DELETE)</button>
+            </div>
+        </div>
+    </section>
     <script src="script.js"></script>
 </body>
 </html>
