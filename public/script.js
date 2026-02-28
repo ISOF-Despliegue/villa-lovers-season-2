@@ -44,20 +44,35 @@ async function gestionarMemoria(metodo) {
     mostrarEnPantalla(datos);
 }
 
-// gestionar el Multiplicador (PUT, DELETE)
+// gestionar el Multiplicador (PUT, PATCH, DELETE)
 async function gestionarMultiplicador(metodo) {
     const valor = document.getElementById('inputEstado').value;
+    let cuerpoPeticion = null;
+
+    if (metodo === 'PUT') cuerpoPeticion = { valor };
+    if (metodo === 'PATCH') cuerpoPeticion = { incremento: valor };
     
     const respuesta = await fetch(`${API_URL}/multiplicador`, {
         method: metodo,
         headers: { 'Content-Type': 'application/json' },
-        body: metodo === 'PUT' ? JSON.stringify({ valor }) : null
+        body: cuerpoPeticion ? JSON.stringify(cuerpoPeticion) : null
     });
 
     const datos = await respuesta.json();
     // Actualiza el indicador visual del multiplicador
     document.getElementById('valMulti').innerText = datos.multiplicadorActual;
     mostrarEnPantalla(datos);
+}
+
+// consultar el Multiplicador (GET manual)
+async function consultarMultiplicador() {
+    const respuesta = await fetch(`${API_URL}/multiplicador`, {
+        method: 'GET'
+    });
+
+    const datos = await respuesta.json();
+    document.getElementById('valMulti').innerText = datos.multiplicadorActual;
+    mostrarEnPantalla({ resultado: datos.multiplicadorActual });
 }
 
 // mostrar los resultados en el HTML

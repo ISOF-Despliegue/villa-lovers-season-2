@@ -171,6 +171,26 @@ app.get('/multiplicador', (req, res) => {
 });
 
 /**
+ * PATCH /multiplicador
+ * Sirve para: Hacer una actualización parcial del multiplicador.
+ * En este ejemplo, sumamos un incremento al valor actual.
+ */
+app.patch('/multiplicador', (req, res) => {
+    const { incremento } = req.body;
+
+    if (incremento === undefined || isNaN(parseFloat(incremento))) {
+        return res.status(400).json({ error: 'Debes proporcionar un incremento numérico' });
+    }
+
+    multiplicador += parseFloat(incremento);
+
+    res.json({ 
+        mensaje: "Multiplicador actualizado parcialmente",
+        multiplicadorActual: multiplicador 
+    });
+});
+
+/**
  * PATCH /memoria
  * Sumamos un valor a la memoria existente en lugar de reemplazarla
  */
@@ -202,7 +222,7 @@ app.delete('/memoria', (req, res) => {
 
 /**
  * DELETE /multiplicador
- * restablece el multiplicador a su valor original (1).
+ * Sí corresponde para este recurso: restablece el multiplicador a su valor original (1).
  */
 app.delete('/multiplicador', (req, res) => {
     multiplicador = 1;
