@@ -1,0 +1,15 @@
+[submodule "services/identity-service"]
+	path = services/identity-service
+	url = https://github.com/UrielCendon/streambuted-identity.git
+[submodule "services/catalog-service"]
+	path = services/catalog-service
+	url = https://github.com/UrielCendon/streambuted-catalog.git
+[submodule "services/media-service"]
+	path = services/media-service
+	url = https://github.com/UrielCendon/streambuted-media.git
+[submodule "services/analytics-service"]
+	path = services/analytics-service
+	url = https://github.com/UrielCendon/streambuted-analytics.git
+[submodule "services/streaming-service"]
+	path = services/streaming-service
+	url = https://github.com/UrielCendon/streambuted-streaming.git
