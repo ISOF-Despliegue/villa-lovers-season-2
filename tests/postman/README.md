@@ -1,0 +1,33 @@
+# Postman Integration Tests (Identity + Catalog)
+
+## Files
+
+- `StreamButed-Identity-Catalog.postman_collection.json`
+- `StreamButed.local.postman_environment.json`
+
+## What this collection covers
+
+1. Health checks for both services.
+2. Identity auth lifecycle: register, login, refresh, promote.
+3. Cross-service communication: `identity-service` promotion event consumed by `catalog-service`.
+4. Catalog protected CRUD flow with JWT from Identity.
+5. Negative cases (auth failures and unauthorized catalog writes).
+
+## Run in Postman UI
+
+1. Import both JSON files.
+2. Select environment: `StreamButed Local`.
+3. Run the full collection in order.
+
+## Run with Newman (CLI)
+
+From repo root:
+
+```powershell
+npm install -g newman
+newman run tests/postman/StreamButed-Identity-Catalog.postman_collection.json -e tests/postman/StreamButed.local.postman_environment.json
+```
+
+## Notes
+
+- The test suite includes a polling mechanism when checking if a promoted user is replicated to the catalog service. Since the replication happens asynchronously via RabbitMQ, the test retries up to 5 times (with 500ms delays) to account for network and processing latency.
