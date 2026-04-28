@@ -922,6 +922,93 @@
         ]
        }
       }
+    ,
+    {
+     "name": "Identity - Promote With Invalid userId (negative)",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Authorization",
+        "value": "Bearer {{accessToken}}"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"userId\": \"not-a-uuid\"\n}"
+      },
+      "url": {
+       "raw": "{{identityBaseUrl}}/api/v1/users/promote",
+       "host": [
+        "{{identityBaseUrl}}"
+       ],
+       "path": [
+        "api",
+        "v1",
+        "users",
+        "promote"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 400 or similar', function () { pm.expect(pm.response.code).to.be.within(400,499); });"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Identity - Promote With Invalid newRole (negative)",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Authorization",
+        "value": "Bearer {{accessToken}}"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"newRole\": \"super-admin\"\n}"
+      },
+      "url": {
+       "raw": "{{identityBaseUrl}}/api/v1/users/promote",
+       "host": [
+        "{{identityBaseUrl}}"
+       ],
+       "path": [
+        "api",
+        "v1",
+        "users",
+        "promote"
+       ]
+      }
+     },
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('status 400 or similar', function () { pm.expect(pm.response.code).to.be.within(400,499); });"
+        ]
+       }
+      }
+     ]
+    }
      ]
     }
    ]
