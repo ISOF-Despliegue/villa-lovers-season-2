@@ -46,7 +46,7 @@ No uses `.env` locales dentro de servicios para el flujo normal con Docker Compo
 
 ## Seguridad: firma de eventos RabbitMQ
 
-Para mejorar la integridad y autenticidad de los eventos publicados por el `identity-service`, el sistema ahora soporta firma HMAC de los mensajes. Configure la variable de entorno `EVENT_SIGNING_SECRET` (64 caracteres) en el archivo `.env` y pásela a los servicios mediante `docker-compose.yml`.
+Para mejorar la integridad y autenticidad de los eventos publicados por el `identity-service`, el sistema ahora soporta firma HMAC de los mensajes. Configura la variable de entorno `EVENT_SIGNING_SECRET` (64 caracteres) en el archivo `.env` y pásala a los servicios mediante `docker-compose.yml`.
 
 - El `identity-service` firma el payload JSON del evento y añade la cabecera `X-Event-Signature` con un HMAC-SHA256 en base64.
 - El `catalog-service` valida la firma antes de procesar el mensaje; si la firma no coincide, el mensaje es rechazado (`nack`) y descartado para evitar procesamiento de eventos falsificados.
