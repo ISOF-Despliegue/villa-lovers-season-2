@@ -64,12 +64,18 @@ Para mejorar la integridad y autenticidad de los eventos publicados por el `iden
 
 Nota: guarda `EVENT_SIGNING_SECRET` en un almacén seguro en producción y rota el secreto según tu política de seguridad.
 
-## Puertos por defecto
+## Puertos por defecto publicados en el host
 
-- Identity HTTP: `8081`
-- Identity gRPC: `9091`
-- Catalog HTTP: `8082`
+- Gateway HTTP: `80`
 - Identity PostgreSQL: `5433`
 - Catalog PostgreSQL: `5434`
 - RabbitMQ AMQP: `5672`
 - RabbitMQ Management: `15672`
+
+## Puertos internos de servicios
+
+Estos puertos solo se exponen dentro de la red Docker; el trafico HTTP externo debe entrar por el gateway:
+
+- Identity HTTP: `8081`
+- Identity gRPC: `9091`
+- Catalog HTTP: `8082`
