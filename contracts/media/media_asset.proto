@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package streambuted.media.v1;
+
+service MediaAssetService {
+  rpc GetAssetMetadata(GetAssetMetadataRequest) returns (AssetMetadataResponse);
+}
+
+message GetAssetMetadataRequest {
+  string asset_id = 1;
+}
+
+message AssetMetadataResponse {
+  string asset_id = 1;
+  string asset_type = 2;
+  string owner_user_id = 3;
+  string content_type = 4;
+  int64 size_bytes = 5;
+  bool exists = 6;
+}

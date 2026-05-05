@@ -58,6 +58,27 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+  minio:
+    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    container_name: streambuted-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-streambuted}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:?missing}
+    ports:
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    expose:
+      - "9000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - minio_data:/data
+
   identity-service:
     build:
       context: ./services/identity-service
@@ -100,8 +121,8 @@ services:
 
   catalog-service:
     build:
-      context: ./services/catalog-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/catalog-service/Dockerfile
     container_name: streambuted-catalog-service
     restart: unless-stopped
     depends_on:
@@ -115,6 +136,8 @@ services:
       JWT_JWKS_URL: ${JWT_JWKS_URL:-http://identity-service:8081/api/v1/auth/.well-known/jwks.json}
       JWT_ISSUER: ${JWT_ISSUER:-http://identity-service:8081}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      MEDIA_GRPC_TARGET: ${MEDIA_GRPC_TARGET:-media-service:9093}
+      MEDIA_GRPC_TIMEOUT_MS: ${MEDIA_GRPC_TIMEOUT_MS:-2000}
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:?missing}:${RABBITMQ_DEFAULT_PASS:?missing}@rabbitmq:5672
       EVENT_SIGNING_SECRET: ${EVENT_SIGNING_SECRET:?missing}
       RABBITMQ_USER_PROMOTED_QUEUE: catalog.user.promoted
@@ -128,6 +151,46 @@ services:
       retries: 10
       start_period: 20s
 
+  media-service:
+    build:
+      context: .
+      dockerfile: services/media-service/Dockerfile
+    container_name: streambuted-media-service
+    restart: unless-stopped
+    depends_on:
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      MEDIA_PORT: ${MEDIA_PORT:-8083}
+      MEDIA_GRPC_PORT: ${MEDIA_GRPC_PORT:-9093}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio:9000}
+      MINIO_PUBLIC_ENDPOINT: ${MINIO_PUBLIC_ENDPOINT:-localhost:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-streambuted}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?missing}
+      MINIO_BUCKET: ${MINIO_BUCKET:-streambuted-media}
+      MINIO_SECURE: ${MINIO_SECURE:-false}
+      MEDIA_MAX_AUDIO_SIZE_MB: ${MEDIA_MAX_AUDIO_SIZE_MB:-50}
+      MEDIA_MAX_IMAGE_SIZE_MB: ${MEDIA_MAX_IMAGE_SIZE_MB:-5}
+      JWT_ISSUER: ${JWT_ISSUER:-http://identity-service:8081}
+      JWT_JWKS_URL: ${JWT_JWKS_URL:-http://identity-service:8081/api/v1/auth/.well-known/jwks.json}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?missing}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?missing}
+      EVENT_SIGNING_SECRET: ${EVENT_SIGNING_SECRET:?missing}
+    expose:
+      - "${MEDIA_PORT:-8083}"
+      - "${MEDIA_GRPC_PORT:-9093}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; port = os.getenv('MEDIA_PORT', '8083'); urllib.request.urlopen(f'http://127.0.0.1:{port}/health', timeout=2).read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   gateway:
     image: nginx:stable-alpine
     container_name: streambuted-gateway
@@ -135,8 +198,13 @@ services:
     depends_on:
       identity-service:
         condition: service_healthy
+        restart: true
       catalog-service:
         condition: service_healthy
+        restart: true
+      media-service:
+        condition: service_healthy
+        restart: true
     ports:
       - "80:80"
     volumes:
@@ -146,3 +214,4 @@ volumes:
   identity_postgres_data:
   catalog_postgres_data:
   rabbitmq_data:
+  minio_data:
