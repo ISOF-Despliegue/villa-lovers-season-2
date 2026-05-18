@@ -201,6 +201,13 @@ export function useArtistLive(socket: Socket | null): UseArtistLiveReturn {
         const sendTransport = device.createSendTransport(transportParams);
         sendTransportRef.current = sendTransport;
 
+        sendTransport.on("connectionstatechange", (connectionState) => {
+          browserLogger.info(`Live send transport state: ${connectionState}`);
+          if (["failed", "disconnected", "closed"].includes(connectionState)) {
+            browserLogger.warn(`Live send transport changed to ${connectionState}.`);
+          }
+        });
+
         sendTransport.on("connect", async ({ dtlsParameters }, callback, errCallback) => {
           try {
             await emitAsync(
