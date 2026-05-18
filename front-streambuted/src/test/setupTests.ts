@@ -4,6 +4,7 @@ Object.defineProperty(globalThis, "__importMeta", {
   value: {
     env: {
       VITE_API_BASE_URL: "http://localhost",
+      VITE_GATEWAY_URL: "https://api.migueleelg0106.me",
     },
   },
   configurable: true,

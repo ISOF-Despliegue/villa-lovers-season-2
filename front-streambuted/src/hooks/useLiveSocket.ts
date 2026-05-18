@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
+import { getGatewayBaseUrl } from "../services/gatewayUrl";
 import { browserLogger } from "../utils/browserLogger";
 
-const LIVE_WS_PATH = "/live/ws/socket.io";
+const LIVE_WS_PATH = "/live/ws/socket.io/";
 
 export type ConnectionState =
   | "idle"
@@ -32,10 +33,11 @@ export function useLiveSocket(token: string | null): UseLiveSocketReturn {
 
     setConnectionState("connecting");
 
-    const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || "https://api.migueleelg0106.me";
+    const gatewayUrl = getGatewayBaseUrl();
     const socket = io(gatewayUrl, {
       path: LIVE_WS_PATH,
       transports: ["websocket", "polling"],
+      withCredentials: true,
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 10,
