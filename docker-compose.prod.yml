@@ -332,7 +332,9 @@ services:
       RTC_MAX_PORT: ${RTC_MAX_PORT:-10100}
     expose:
       - "3003"
-      - "${RTC_MIN_PORT:-10000}-${RTC_MAX_PORT:-10100}/udp"
+    ports:
+      # WebRTC media traffic. Socket.IO and REST still go through the HTTPS gateway.
+      - "${RTC_MIN_PORT:-10000}-${RTC_MAX_PORT:-10100}:${RTC_MIN_PORT:-10000}-${RTC_MAX_PORT:-10100}/udp"
     healthcheck:
       test: ["CMD", "node", "-e", "const http=require('http'); const req=http.get({host:'127.0.0.1',port:process.env.PORT||3003,path:'/health',timeout:2000}, (res) => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.on('timeout', () => { req.destroy(); process.exit(1); });"]
       interval: 10s

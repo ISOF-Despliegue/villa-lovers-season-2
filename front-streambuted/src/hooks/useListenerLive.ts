@@ -161,6 +161,13 @@ export function useListenerLive(socket: Socket | null): UseListenerLiveReturn {
         const recvTransport = device.createRecvTransport(transportParams);
         recvTransportRef.current = recvTransport;
 
+        recvTransport.on("connectionstatechange", (connectionState) => {
+          browserLogger.info(`Live recv transport state: ${connectionState}`);
+          if (["failed", "disconnected", "closed"].includes(connectionState)) {
+            browserLogger.warn(`Live recv transport changed to ${connectionState}.`);
+          }
+        });
+
         recvTransport.on("connect", async ({ dtlsParameters }, callback, errCallback) => {
           try {
             await emitAsync(

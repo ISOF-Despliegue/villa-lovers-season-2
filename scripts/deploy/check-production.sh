@@ -100,6 +100,9 @@ required_vars=(
   EMAIL_HOST
   EMAIL_USER
   EMAIL_PASSWORD
+  MEDIASOUP_ANNOUNCED_IP
+  RTC_MIN_PORT
+  RTC_MAX_PORT
 )
 
 for key in "${required_vars[@]}"; do
@@ -120,6 +123,20 @@ fi
 
 [ "$(get_env_value REFRESH_COOKIE_SECURE)" = "true" ] || fail "REFRESH_COOKIE_SECURE must be true"
 
+case "$(get_env_value MEDIASOUP_ANNOUNCED_IP)" in
+  ""|"127."*|"0.0.0.0"|localhost)
+    fail "MEDIASOUP_ANNOUNCED_IP must be the public Droplet IP"
+    ;;
+esac
+
+rtc_min="$(get_env_value RTC_MIN_PORT)"
+rtc_max="$(get_env_value RTC_MAX_PORT)"
+if ! printf '%s\n%s\n' "$rtc_min" "$rtc_max" | grep -Eq '^[0-9]+$'; then
+  fail "RTC_MIN_PORT and RTC_MAX_PORT must be numeric"
+elif [ "$rtc_min" -gt "$rtc_max" ]; then
+  fail "RTC_MIN_PORT cannot be greater than RTC_MAX_PORT"
+fi
+
 case "$(get_env_value CORS_ALLOWED_ORIGINS)" in
   *"*"*) fail "CORS_ALLOWED_ORIGINS cannot contain wildcard" ;;
 esac
@@ -132,10 +149,18 @@ if command -v docker >/dev/null 2>&1; then
     if "${COMPOSE[@]}" ps >/dev/null 2>&1; then
       ok "docker compose ps is available"
       published_ports="$("${COMPOSE[@]}" ps 2>/dev/null || true)"
-      if printf '%s\n' "$published_ports" | grep -E '0\.0\.0\.0:|:::|5432|5433|5434|27017|5672|15672|9000|9001|9091|9092|9093' >/dev/null; then
+      if printf '%s\n' "$published_ports" | grep -E '(0\.0\.0\.0:|:::)(5432|5433|5434|27017|5672|15672|9000|9001|9091|9092|9093)' >/dev/null; then
         fail "Unexpected public/internal service port appears in docker compose ps output"
       else
         ok "No DB/Mongo/RabbitMQ/MinIO/gRPC ports appear publicly published"
+      fi
+      if printf '%s\n' "$published_ports" | grep -E "(0\.0\.0\.0:|:::)$rtc_min-$rtc_max->.*udp" >/dev/null; then
+        ok "Live WebRTC UDP range $rtc_min-$rtc_max is published"
+      elif printf '%s\n' "$published_ports" | grep -E "(0\.0\.0\.0:|:::)$rtc_min->$rtc_min/udp" >/dev/null \
+        && printf '%s\n' "$published_ports" | grep -E "(0\.0\.0\.0:|:::)$rtc_max->$rtc_max/udp" >/dev/null; then
+        ok "Live WebRTC UDP range $rtc_min-$rtc_max is published"
+      else
+        fail "Live WebRTC UDP range $rtc_min-$rtc_max is not published; video will stay black behind NAT/firewall"
       fi
     else
       warn "Services are not running yet; skipped live docker port inspection"
