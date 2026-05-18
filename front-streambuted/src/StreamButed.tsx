@@ -6,9 +6,17 @@ import {
   useRef,
   useState,
   type Dispatch,
-  type ReactNode,
   type SetStateAction,
 } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import "./index.css";
 import "./App.css";
 
@@ -44,6 +52,7 @@ import { ArtistLiveRoom } from "./pages/live/ArtistLiveRoom";
 import { LiveConcertsPage, type LiveRoom } from "./pages/live/LiveConcertsPage";
 import { ListenerLiveRoom } from "./pages/live/ListenerLiveRoom";
 import { RoleRoute } from "./routes/RoleRoute";
+import { routePatterns, routes } from "./routes/appRoutes";
 import { useAuth } from "./hooks/useAuth";
 import { playbackService } from "./services/playbackService";
 import { catalogService } from "./services/catalogService";
@@ -53,8 +62,6 @@ import { getSecureRandomInt } from "./utils/secureRandom";
 import type { CurrentUser } from "./types/user.types";
 import type { Track } from "./types/catalog.types";
 import type { PlaybackProgressRequest } from "./types/playback.types";
-
-type AuthPage = "login" | "register";
 
 type AppTrack = Track & {
   id?: string;
@@ -719,7 +726,207 @@ const PlaybackController = forwardRef<PlaybackControllerHandle, PlaybackControll
   }
 );
 
+function getRouteErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "No se pudo cargar la informacion.";
+}
+
+function getDefaultRoute(user: CurrentUser): string {
+  if (user.role === "admin") {
+    return routes.adminOverview;
+  }
+
+  if (user.role === "artist") {
+    return routes.artistDashboard;
+  }
+
+  return routes.home;
+}
+
+type SinglePlaybackRouteProps = Readonly<{
+  currentTrack: AppTrack | null;
+  onPlayTrack: (track: AppTrack) => void;
+}>;
+
+type AlbumPlaybackRouteProps = Readonly<{
+  currentTrack: AppTrack | null;
+  onPlayTrack: (track: AppTrack, tracks: AppTrack[], albumId: string) => void;
+}>;
+
+function AlbumDetailRoute({ currentTrack, onPlayTrack }: AlbumPlaybackRouteProps) {
+  const { albumId } = useParams();
+
+  if (!albumId) {
+    return (
+      <NotAvailableState
+        title="Album no seleccionado"
+        message="La URL no contiene un albumId valido."
+      />
+    );
+  }
+
+  return (
+    <AlbumDetailPage
+      albumId={albumId}
+      currentTrack={currentTrack}
+      onPlayTrack={onPlayTrack}
+    />
+  );
+}
+
+function ArtistProfileRoute({ currentTrack, onPlayTrack }: SinglePlaybackRouteProps) {
+  const { artistId } = useParams();
+
+  if (!artistId) {
+    return (
+      <NotAvailableState
+        title="Artista no seleccionado"
+        message="La URL no contiene un artistId valido."
+      />
+    );
+  }
+
+  return (
+    <ArtistProfilePage
+      artistId={artistId}
+      currentTrack={currentTrack}
+      onPlayTrack={onPlayTrack}
+    />
+  );
+}
+
+type LiveRoomRouteState = {
+  room?: LiveRoom;
+} | null;
+
+function ListenerLiveRoomRoute() {
+  const { roomId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const state = location.state as LiveRoomRouteState;
+  const room = state?.room;
+
+  if (!roomId) {
+    return (
+      <NotAvailableState
+        title="Live no seleccionado"
+        message="La URL no contiene un roomId valido."
+      />
+    );
+  }
+
+  return (
+    <ListenerLiveRoom
+      roomId={roomId}
+      concertTitle={room?.title}
+      artistName={room?.artistName || room?.artistId}
+      onLeave={() => navigate(routes.lives)}
+    />
+  );
+}
+
+type ArtistUploadRouteProps = Readonly<{
+  toast: (msg: string) => void;
+  user: CurrentUser;
+}>;
+
+function ArtistUploadRoute({ toast, user }: ArtistUploadRouteProps) {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const initialAlbumId = searchParams.get("albumId");
+
+  return (
+    <UploadSinglePage
+      toast={toast}
+      user={user}
+      initialAlbumId={initialAlbumId}
+      onUploadAlbumConsumed={() => navigate(routes.artistUpload, { replace: true })}
+    />
+  );
+}
+
+type ArtistEditTrackRouteProps = Readonly<{
+  toast: (msg: string) => void;
+  user: CurrentUser;
+}>;
+
+function ArtistEditTrackRoute({ toast, user }: ArtistEditTrackRouteProps) {
+  const { trackId } = useParams();
+  const navigate = useNavigate();
+  const [track, setTrack] = useState<AppTrack | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!trackId) {
+      return undefined;
+    }
+
+    let mounted = true;
+    setIsLoading(true);
+    setError("");
+    setTrack(null);
+
+    catalogService
+      .getTrack(trackId)
+      .then((loadedTrack) => {
+        if (mounted) {
+          setTrack(loadedTrack);
+        }
+      })
+      .catch((loadError) => {
+        if (mounted) {
+          setError(getRouteErrorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [trackId]);
+
+  if (!trackId) {
+    return (
+      <NotAvailableState
+        title="Track no seleccionado"
+        message="La URL no contiene un trackId valido."
+      />
+    );
+  }
+
+  if (isLoading) {
+    return <div className="page-inner">Cargando track...</div>;
+  }
+
+  if (error) {
+    return <NotAvailableState title="No se pudo cargar el track" message={error} />;
+  }
+
+  if (!track) {
+    return <div className="page-inner">Preparando editor...</div>;
+  }
+
+  return (
+    <EditTrackPage
+      track={track}
+      user={user}
+      onCancel={() => navigate(routes.artistTracks)}
+      onDone={() => navigate(routes.artistTracks)}
+      toast={toast}
+    />
+  );
+}
+
 export default function StreamButed() {
+  const navigate = useNavigate();
   const {
     user,
     isLoadingSession,
@@ -732,13 +939,6 @@ export default function StreamButed() {
     logout,
   } = useAuth();
 
-  const [authPage, setAuthPage] = useState<AuthPage>("login");
-  const [page, setPage] = useState<string>("home");
-  const [viewAlbum, setViewAlbum] = useState<string | null>(null);
-  const [viewArtist, setViewArtist] = useState<string | null>(null);
-  const [editTrack, setEditTrack] = useState<AppTrack | null>(null);
-  const [uploadAlbumId, setUploadAlbumId] = useState<string | null>(null);
-  const [selectedLiveRoom, setSelectedLiveRoom] = useState<LiveRoom | null>(null);
   const [currentTrack, setCurrentTrack] = useState<AppTrack | null>(null);
   const [playbackQueue, setPlaybackQueue] = useState<PlaybackQueueState>(EMPTY_QUEUE);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -767,15 +967,10 @@ export default function StreamButed() {
 
   const resetNavigation = useCallback((nextUser: CurrentUser | null) => {
     playbackControllerRef.current?.reset();
-    setPage(nextUser?.role === "admin" ? "admin-overview" : "home");
-    setViewAlbum(null);
-    setViewArtist(null);
-    setEditTrack(null);
-    setUploadAlbumId(null);
-    setSelectedLiveRoom(null);
     setCurrentTrack(null);
     setPlaybackQueue(EMPTY_QUEUE);
-  }, []);
+    navigate(nextUser ? getDefaultRoute(nextUser) : routes.login, { replace: true });
+  }, [navigate]);
 
   const handleLogin = async (credentials: { email: string; password: string }) => {
     const loggedUser = await login(credentials);
@@ -840,7 +1035,6 @@ export default function StreamButed() {
     try {
       await playbackControllerRef.current?.saveCurrentProgress(false);
       await logout();
-      setAuthPage("login");
       resetNavigation(null);
       setToastMsg(null);
       setShowLogoutConfirmation(false);
@@ -862,27 +1056,35 @@ export default function StreamButed() {
   }
 
   if (!user) {
-    if (authPage === "login") {
-      return (
-        <LoginPage
-          onLogin={handleLogin}
-          onRegister={() => setAuthPage("register")}
-          onGoogleLogin={() => handleGoogleAuth("login")}
-          externalError={oauthError}
-        />
-      );
-    }
-
-    return (
-      <RegisterPage
-        onStartRegistration={handleRegister}
-        onVerifyRegistration={handleVerifyRegistration}
-        onResendCode={resendRegistrationCode}
-        onCancelVerification={cancelRegistration}
-        onGoogleRegister={() => handleGoogleAuth("register")}
-        onBack={() => setAuthPage("login")}
+    const loginPage = (
+      <LoginPage
+        onLogin={handleLogin}
+        onRegister={() => navigate(routes.register)}
+        onGoogleLogin={() => handleGoogleAuth("login")}
         externalError={oauthError}
       />
+    );
+
+    return (
+      <Routes>
+        <Route path={routes.login} element={loginPage} />
+        <Route path={routes.authCallback} element={loginPage} />
+        <Route
+          path={routes.register}
+          element={
+            <RegisterPage
+              onStartRegistration={handleRegister}
+              onVerifyRegistration={handleVerifyRegistration}
+              onResendCode={resendRegistrationCode}
+              onCancelVerification={cancelRegistration}
+              onGoogleRegister={() => handleGoogleAuth("register")}
+              onBack={() => navigate(routes.login)}
+              externalError={oauthError}
+            />
+          }
+        />
+        <Route path="*" element={<Navigate to={routes.login} replace />} />
+      </Routes>
     );
   }
 
@@ -897,189 +1099,204 @@ export default function StreamButed() {
   }
 
   const roleLabel = getRoleLabel(user.role);
-
-  const allPages: Record<string, ReactNode> = {
-    home: (
-      <HomePage
-        setPage={setPage}
-      />
-    ),
-    search: (
-      <SearchPage
-        onPlayTrack={playSingleTrack}
-        currentTrack={currentTrack}
-        setPage={setPage}
-        setViewAlbum={setViewAlbum}
-        setViewArtist={setViewArtist}
-      />
-    ),
-    library: (
-      <NotAvailableState
-        title="Biblioteca"
-        message="La API de biblioteca personal todavia no existe. Esta vista queda lista para conectarse cuando el backend exponga favoritos o colecciones."
-      />
-    ),
-    lives: (
-      <LiveConcertsPage
-        userRole={user.role}
-        onJoinRoom={(room) => {
-          setSelectedLiveRoom(room);
-          setPage("listener-live");
-        }}
-        onStartBroadcast={() => setPage("artist-live")}
-      />
-    ),
-    "artist-live": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <ArtistLiveRoom />
-      </RoleRoute>
-    ),
-    "listener-live": selectedLiveRoom ? (
-      <ListenerLiveRoom
-        roomId={selectedLiveRoom.id}
-        concertTitle={selectedLiveRoom.title}
-        artistName={selectedLiveRoom.artistName || selectedLiveRoom.artistId}
-        onLeave={() => {
-          setSelectedLiveRoom(null);
-          setPage("lives");
-        }}
-      />
-    ) : (
-      <LiveConcertsPage
-        userRole={user.role}
-        onJoinRoom={(room) => {
-          setSelectedLiveRoom(room);
-          setPage("listener-live");
-        }}
-        onStartBroadcast={() => setPage("artist-live")}
-      />
-    ),
-    "album-detail": (
-      <AlbumDetailPage
-        albumId={viewAlbum}
-        onPlayTrack={playAlbumTrack}
-        currentTrack={currentTrack}
-        setPage={setPage}
-        setViewArtist={setViewArtist}
-      />
-    ),
-    "artist-profile": (
-      <ArtistProfilePage
-        artistId={viewArtist}
-        onPlayTrack={playSingleTrack}
-        currentTrack={currentTrack}
-        setPage={setPage}
-        setViewAlbum={setViewAlbum}
-      />
-    ),
-    "artist-dashboard": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <ArtistDashboardPage user={user} onPlayTrack={playSingleTrack} currentTrack={currentTrack} setPage={setPage} />
-      </RoleRoute>
-    ),
-    "artist-tracks": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <MyTracksPage setPage={setPage} setEditTrack={setEditTrack} toast={toast} user={user} />
-      </RoleRoute>
-    ),
-    "artist-albums": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <MyAlbumsPage setPage={setPage} setUploadAlbumId={setUploadAlbumId} toast={toast} user={user} />
-      </RoleRoute>
-    ),
-    "artist-upload": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <UploadSinglePage
-          toast={toast}
-          user={user}
-          initialAlbumId={uploadAlbumId}
-          onUploadAlbumConsumed={() => setUploadAlbumId(null)}
-        />
-      </RoleRoute>
-    ),
-    "artist-album": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <CreateAlbumPage toast={toast} />
-      </RoleRoute>
-    ),
-    "artist-edit-track": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <EditTrackPage track={editTrack} user={user} setPage={setPage} toast={toast} />
-      </RoleRoute>
-    ),
-    "artist-analytics": (
-      <RoleRoute allowedRoles={["artist"]}>
-        <ArtistAnalyticsPage />
-      </RoleRoute>
-    ),
-    "admin-overview": (
-      <RoleRoute allowedRoles={["admin"]}>
-        <AdminOverviewPage />
-      </RoleRoute>
-    ),
-    "admin-users": (
-      <RoleRoute allowedRoles={["admin"]}>
-        <AdminUsersPage />
-      </RoleRoute>
-    ),
-    "admin-content": (
-      <RoleRoute allowedRoles={["admin"]}>
-        <NotAvailableState
-          title="Contenido"
-          message="No hay endpoints administrativos de catalogo para moderacion global en esta iteracion."
-        />
-      </RoleRoute>
-    ),
-    "admin-reports": (
-      <RoleRoute allowedRoles={["admin"]}>
-        <NotAvailableState
-          title="Reportes"
-          message="Analytics Service no tiene API HTTP ni ruta de gateway disponible."
-        />
-      </RoleRoute>
-    ),
-    "admin-moderation": (
-      <RoleRoute allowedRoles={["admin"]}>
-        <AdminModerationPage />
-      </RoleRoute>
-    ),
-    settings: <SettingsPage user={user} toast={toast} />,
-  };
+  const defaultRoute = getDefaultRoute(user);
+  const logoutDialog = (
+    <ConfirmDialog
+      open={showLogoutConfirmation}
+      title="Cerrar sesion"
+      message="Se guardara el progreso de reproduccion actual y volveras a la pantalla de inicio de sesion."
+      confirmLabel="Cerrar sesion"
+      tone="primary"
+      isLoading={isLoggingOut}
+      onConfirm={handleLogout}
+      onCancel={() => setShowLogoutConfirmation(false)}
+    />
+  );
+  const toastNode = toastMsg ? <Toast msg={toastMsg} onDone={() => setToastMsg(null)} /> : null;
 
   if (user.role === "admin") {
     return (
       <div className="app-shell">
         <SessionBar user={user} roleLabel={roleLabel} onLogout={() => setShowLogoutConfirmation(true)} />
         <div className="app-body">
-          <AdminSidebar page={page} setPage={setPage} user={user} />
+          <AdminSidebar user={user} />
           <div className="main-content">
-            {allPages[page] || allPages["admin-overview"]}
+            <Routes>
+              <Route
+                path={routes.adminOverview}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <AdminOverviewPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path={routes.adminUsers}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <AdminUsersPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path={routes.adminContent}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <NotAvailableState
+                      title="Contenido"
+                      message="No hay endpoints administrativos de catalogo para moderacion global en esta iteracion."
+                    />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path={routes.adminReports}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <NotAvailableState
+                      title="Reportes"
+                      message="Analytics Service no tiene API HTTP ni ruta de gateway disponible."
+                    />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path={routes.adminModeration}
+                element={
+                  <RoleRoute allowedRoles={["admin"]}>
+                    <AdminModerationPage />
+                  </RoleRoute>
+                }
+              />
+              <Route path={routes.settings} element={<SettingsPage user={user} toast={toast} />} />
+              <Route path={routes.login} element={<Navigate to={defaultRoute} replace />} />
+              <Route path={routes.register} element={<Navigate to={defaultRoute} replace />} />
+              <Route path={routes.authCallback} element={<Navigate to={defaultRoute} replace />} />
+              <Route path="*" element={<Navigate to={defaultRoute} replace />} />
+            </Routes>
           </div>
         </div>
-        <ConfirmDialog
-          open={showLogoutConfirmation}
-          title="Cerrar sesion"
-          message="Se guardara el progreso de reproduccion actual y volveras a la pantalla de inicio de sesion."
-          confirmLabel="Cerrar sesion"
-          tone="primary"
-          isLoading={isLoggingOut}
-          onConfirm={handleLogout}
-          onCancel={() => setShowLogoutConfirmation(false)}
-        />
-        {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
+        {logoutDialog}
+        {toastNode}
       </div>
     );
   }
-
-  const defaultPage = user.role === "artist" ? "artist-dashboard" : "home";
 
   return (
     <div className="app-shell">
       <SessionBar user={user} roleLabel={roleLabel} onLogout={() => setShowLogoutConfirmation(true)} />
       <div className="app-body">
-        <MainSidebar page={page} setPage={setPage} user={user} />
+        <MainSidebar user={user} />
         <div className="main-content">
-          {allPages[page] || allPages[defaultPage]}
+          <Routes>
+            <Route path={routes.home} element={<HomePage />} />
+            <Route
+              path={routes.search}
+              element={<SearchPage onPlayTrack={playSingleTrack} currentTrack={currentTrack} />}
+            />
+            <Route
+              path={routes.library}
+              element={
+                <NotAvailableState
+                  title="Biblioteca"
+                  message="La API de biblioteca personal todavia no existe. Esta vista queda lista para conectarse cuando el backend exponga favoritos o colecciones."
+                />
+              }
+            />
+            <Route
+              path={routePatterns.album}
+              element={<AlbumDetailRoute onPlayTrack={playAlbumTrack} currentTrack={currentTrack} />}
+            />
+            <Route
+              path={routePatterns.artistProfile}
+              element={<ArtistProfileRoute onPlayTrack={playSingleTrack} currentTrack={currentTrack} />}
+            />
+            <Route
+              path={routes.lives}
+              element={
+                <LiveConcertsPage
+                  userRole={user.role}
+                  onJoinRoom={(room) => navigate(routes.liveRoom(room.id), { state: { room } })}
+                  onStartBroadcast={() => navigate(routes.artistLive)}
+                />
+              }
+            />
+            <Route path={routePatterns.liveRoom} element={<ListenerLiveRoomRoute />} />
+            <Route
+              path={routes.artistLive}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <ArtistLiveRoom />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistDashboard}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <ArtistDashboardPage
+                    user={user}
+                    onPlayTrack={playSingleTrack}
+                    currentTrack={currentTrack}
+                  />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistTracks}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <MyTracksPage toast={toast} user={user} />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistAlbums}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <MyAlbumsPage toast={toast} user={user} />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistUpload}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <ArtistUploadRoute toast={toast} user={user} />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistAlbumNew}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <CreateAlbumPage toast={toast} />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routePatterns.artistTrackEdit}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <ArtistEditTrackRoute toast={toast} user={user} />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path={routes.artistAnalytics}
+              element={
+                <RoleRoute allowedRoles={["artist"]}>
+                  <ArtistAnalyticsPage />
+                </RoleRoute>
+              }
+            />
+            <Route path={routes.settings} element={<SettingsPage user={user} toast={toast} />} />
+            <Route path="/admin/*" element={<Navigate to={routes.home} replace />} />
+            <Route path={routes.login} element={<Navigate to={defaultRoute} replace />} />
+            <Route path={routes.register} element={<Navigate to={defaultRoute} replace />} />
+            <Route path={routes.authCallback} element={<Navigate to={defaultRoute} replace />} />
+            <Route path="*" element={<Navigate to={defaultRoute} replace />} />
+          </Routes>
         </div>
       </div>
       <PlaybackController
@@ -1091,17 +1308,8 @@ export default function StreamButed() {
         setPlaybackQueue={setPlaybackQueue}
         toast={toast}
       />
-      <ConfirmDialog
-        open={showLogoutConfirmation}
-        title="Cerrar sesion"
-        message="Se guardara el progreso de reproduccion actual y volveras a la pantalla de inicio de sesion."
-        confirmLabel="Cerrar sesion"
-        tone="primary"
-        isLoading={isLoggingOut}
-        onConfirm={handleLogout}
-        onCancel={() => setShowLogoutConfirmation(false)}
-      />
-      {toastMsg && <Toast msg={toastMsg} onDone={() => setToastMsg(null)} />}
+      {logoutDialog}
+      {toastNode}
     </div>
   );
 }

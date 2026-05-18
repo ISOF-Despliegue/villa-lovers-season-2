@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { CreateAlbumPage, EditTrackPage, MyAlbumsPage, MyTracksPage, UploadSinglePage } from "./ArtistPages";
 import { catalogService } from "../../services/catalogService";
 import { mediaService } from "../../services/mediaService";
@@ -22,6 +23,10 @@ jest.mock("../../services/mediaService", () => ({
     uploadCatalogImage: jest.fn(),
   },
 }));
+
+function renderWithRouter(ui: React.ReactNode) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 describe("artist upload forms", () => {
   beforeEach(() => {
@@ -233,7 +238,8 @@ describe("artist upload forms", () => {
           updatedAt: "2026-01-01T00:00:00.000Z",
         }}
         user={{ id: "artist-1" }}
-        setPage={jest.fn()}
+        onCancel={jest.fn()}
+        onDone={jest.fn()}
         toast={jest.fn()}
       />
     );
@@ -278,8 +284,8 @@ describe("artist upload forms", () => {
       },
     ]);
 
-    const tracksPage = render(
-      <MyTracksPage user={{ id: "artist-1" }} setPage={jest.fn()} setEditTrack={jest.fn()} toast={jest.fn()} />
+    const tracksPage = renderWithRouter(
+      <MyTracksPage user={{ id: "artist-1" }} toast={jest.fn()} />
     );
 
     expect(await screen.findByAltText("Portada de Song")).toHaveAttribute(
@@ -289,8 +295,8 @@ describe("artist upload forms", () => {
 
     tracksPage.unmount();
 
-    render(
-      <MyAlbumsPage user={{ id: "artist-1" }} setPage={jest.fn()} setUploadAlbumId={jest.fn()} toast={jest.fn()} />
+    renderWithRouter(
+      <MyAlbumsPage user={{ id: "artist-1" }} toast={jest.fn()} />
     );
 
     expect(await screen.findByAltText("Portada de Album")).toHaveAttribute(

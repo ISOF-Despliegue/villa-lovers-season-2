@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { AlbumDetailPage } from "./ListenerPages";
 import { catalogService } from "../../services/catalogService";
 
@@ -9,6 +10,10 @@ jest.mock("../../services/catalogService", () => ({
     listAlbumTracks: jest.fn(),
   },
 }));
+
+function renderWithRouter(ui: React.ReactNode) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>);
+}
 
 describe("AlbumDetailPage", () => {
   it("loads real album tracks and starts album playback context", async () => {
@@ -53,13 +58,11 @@ describe("AlbumDetailPage", () => {
       ],
     });
 
-    render(
+    renderWithRouter(
       <AlbumDetailPage
         albumId="album-1"
         onPlayTrack={onPlayTrack}
         currentTrack={null}
-        setPage={jest.fn()}
-        setViewArtist={jest.fn()}
       />
     );
 

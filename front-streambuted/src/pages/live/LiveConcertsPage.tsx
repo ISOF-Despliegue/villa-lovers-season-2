@@ -66,13 +66,13 @@ export function LiveConcertsPage({ userRole, onJoinRoom, onStartBroadcast }: Liv
   const canStart = userRole === "ARTIST" || userRole === "artist";
 
   return (
-    <div style={{ padding: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+    <div className="page-inner">
+      <div className="page-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Conciertos en Vivo</h1>
-          <p style={{ fontSize: 13, color: "#9994A0", marginTop: 4 }}>
+          <div className="page-title">Conciertos en Vivo</div>
+          <div className="page-subtitle">
             {activeRooms.length} {activeRooms.length === 1 ? "concierto activo" : "conciertos activos"}
-          </p>
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>

@@ -155,11 +155,13 @@ button:focus-visible { box-shadow: 0 0 0 3px var(--accent-dim); }
   display: flex; align-items: center; gap: 10px;
   width: 100%;
   padding: 9px 10px; border-radius: var(--r8);
+  border: 0;
   background: transparent;
   color: var(--t2); font-size: 14px; font-weight: 500;
   cursor: pointer; transition: color .12s, background .12s;
   margin-bottom: 2px;
   text-align: left;
+  text-decoration: none;
 }
 .nav-item:hover { color: var(--t1); background: var(--bg3); }
 .nav-item.active { color: var(--accent); background: var(--accent-dim); font-weight: 600; }

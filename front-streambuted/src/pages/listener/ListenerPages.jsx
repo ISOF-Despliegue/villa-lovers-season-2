@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { IcMusic, IcSearch } from '../../components/icons/Icons';
 import { AlbumCard } from '../../components/ui/AlbumCard';
 import { TrackRow } from '../../components/ui/TrackRow';
 import { catalogService } from '../../services/catalogService';
 import { getAssetUrl } from '../../services/mediaService';
+import { routes } from '../../routes/appRoutes';
 import { browserLogger } from '../../utils/browserLogger';
 import { formatDate } from '../../utils/formatters';
 
@@ -92,7 +94,7 @@ function withAlbumContext(tracks, albumTitlesById) {
   }));
 }
 
-export function HomePage({ setPage }) {
+export function HomePage() {
   return (
     <div className="page-inner">
       <div className="page-header">
@@ -108,15 +110,16 @@ export function HomePage({ setPage }) {
           Esta pantalla ya no muestra albums o canciones mock. Cuando el backend agregue endpoints de
           recomendaciones, home podra poblarse con datos productivos.
         </p>
-        <button className="btn-primary" onClick={() => setPage('search')}>
+        <Link className="btn-primary" to={routes.search}>
           Buscar en Catalog
-        </button>
+        </Link>
       </div>
     </div>
   );
 }
 
-export function SearchPage({ onPlayTrack, currentTrack, setPage, setViewAlbum, setViewArtist }) {
+export function SearchPage({ onPlayTrack, currentTrack }) {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ artists: [], albums: [], tracks: [] });
   const [isLoading, setIsLoading] = useState(false);
@@ -216,7 +219,7 @@ export function SearchPage({ onPlayTrack, currentTrack, setPage, setViewAlbum, s
                 <button
                   key={artist.artistId}
                   className="album-card"
-                  onClick={() => { setViewArtist(artist.artistId); setPage('artist-profile'); }}
+                  onClick={() => navigate(routes.artistProfile(artist.artistId))}
                   type="button"
                 >
                   <div className="album-thumb">
@@ -255,7 +258,7 @@ export function SearchPage({ onPlayTrack, currentTrack, setPage, setViewAlbum, s
                     index={index}
                     isPlaying={currentTrack?.trackId === track.trackId}
                     onPlay={() => onPlayTrack(track)}
-                    onArtistClick={artistId => { setViewArtist(artistId); setPage('artist-profile'); }}
+                    onArtistClick={artistId => navigate(routes.artistProfile(artistId))}
                     metaText={track.genre || 'Sin genero'}
                     contextText={track.albumTitle}
                   />
@@ -275,7 +278,7 @@ export function SearchPage({ onPlayTrack, currentTrack, setPage, setViewAlbum, s
                 <AlbumCard
                   key={album.albumId}
                   album={album}
-                  onClick={() => { setViewAlbum(album.albumId); setPage('album-detail'); }}
+                  onClick={() => navigate(routes.album(album.albumId))}
                 />
               ))}
             </div>
@@ -286,7 +289,8 @@ export function SearchPage({ onPlayTrack, currentTrack, setPage, setViewAlbum, s
   );
 }
 
-export function AlbumDetailPage({ albumId, onPlayTrack, currentTrack, setPage, setViewArtist }) {
+export function AlbumDetailPage({ albumId, onPlayTrack, currentTrack }) {
+  const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -358,7 +362,7 @@ export function AlbumDetailPage({ albumId, onPlayTrack, currentTrack, setPage, s
           <div className="album-hero-meta">
             <button
               className="inline-link-button"
-              onClick={() => { setViewArtist(album.artistId); setPage('artist-profile'); }}
+              onClick={() => navigate(routes.artistProfile(album.artistId))}
               type="button"
             >
               {album.artist || 'Artista'}
@@ -393,6 +397,7 @@ export function AlbumDetailPage({ albumId, onPlayTrack, currentTrack, setPage, s
                     tracks,
                     album.albumId
                   )}
+                  onArtistClick={artistId => navigate(routes.artistProfile(artistId))}
                 />
               ))}
             </tbody>
@@ -403,7 +408,8 @@ export function AlbumDetailPage({ albumId, onPlayTrack, currentTrack, setPage, s
   );
 }
 
-export function ArtistProfilePage({ artistId, onPlayTrack, currentTrack, setPage, setViewAlbum }) {
+export function ArtistProfilePage({ artistId, onPlayTrack, currentTrack }) {
+  const navigate = useNavigate();
   const [artist, setArtist] = useState(null);
   const [tracks, setTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
@@ -516,7 +522,7 @@ export function ArtistProfilePage({ artistId, onPlayTrack, currentTrack, setPage
                 <AlbumCard
                   key={album.albumId}
                   album={{ ...album, artist: artist.displayName }}
-                  onClick={() => { setViewAlbum(album.albumId); setPage('album-detail'); }}
+                  onClick={() => navigate(routes.album(album.albumId))}
                 />
               ))}
             </div>
@@ -550,30 +556,21 @@ InlineState.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
-HomePage.propTypes = {
-  setPage: PropTypes.func.isRequired,
-};
+HomePage.propTypes = {};
 
 SearchPage.propTypes = {
   currentTrack: listenerTrackPropType,
   onPlayTrack: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  setViewAlbum: PropTypes.func.isRequired,
-  setViewArtist: PropTypes.func.isRequired,
 };
 
 AlbumDetailPage.propTypes = {
   albumId: PropTypes.string,
   currentTrack: listenerTrackPropType,
   onPlayTrack: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  setViewArtist: PropTypes.func.isRequired,
 };
 
 ArtistProfilePage.propTypes = {
   artistId: PropTypes.string,
   currentTrack: listenerTrackPropType,
   onPlayTrack: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
-  setViewAlbum: PropTypes.func.isRequired,
 };

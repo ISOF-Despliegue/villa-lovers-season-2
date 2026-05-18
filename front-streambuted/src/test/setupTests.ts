@@ -1,4 +1,15 @@
 import "@testing-library/jest-dom";
+import { TextDecoder, TextEncoder } from "util";
+
+Object.defineProperty(globalThis, "TextEncoder", {
+  value: TextEncoder,
+  configurable: true,
+});
+
+Object.defineProperty(globalThis, "TextDecoder", {
+  value: TextDecoder,
+  configurable: true,
+});
 
 Object.defineProperty(globalThis, "__importMeta", {
   value: {

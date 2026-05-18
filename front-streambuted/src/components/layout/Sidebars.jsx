@@ -1,4 +1,5 @@
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
+import { NavLink } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import {
   IcHome, IcSearch, IcLib, IcSettings,
@@ -6,20 +7,17 @@ import {
   IcOverview, IcUsers, IcContent, IcReport, IcShield,
 } from '../icons/Icons';
 import { getAssetUrl } from '../../services/mediaService';
+import { routes } from '../../routes/appRoutes';
 
-function SidebarNavItem({ item, isActive, onSelect }) {
-  const handleClick = useCallback(() => {
-    onSelect(item.id);
-  }, [item.id, onSelect]);
-
+function SidebarNavItem({ item }) {
   return (
-    <button
-      type="button"
-      className={`nav-item${isActive ? ' active' : ''}`}
-      onClick={handleClick}
+    <NavLink
+      className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+      end={item.end}
+      to={item.to}
     >
       {item.icon}<span>{item.label}</span>
-    </button>
+    </NavLink>
   );
 }
 
@@ -30,25 +28,25 @@ function SidebarNavItem({ item, isActive, onSelect }) {
  * Manage section is gated behind the artist role so that capability expansion
  * feels seamless rather than abrupt (no sidebar swap on promotion).
  */
-function MainSidebarComponent({ page, setPage, user }) {
+function MainSidebarComponent({ user }) {
   const discoverItems = [
-    { id: 'home', label: 'Home', icon: <IcHome /> },
-    { id: 'search', label: 'Search', icon: <IcSearch /> },
-    { id: 'library', label: 'Library', icon: <IcLib /> },
-    { id: 'lives', label: 'Lives', icon: <span style={{ fontSize: 14 }}>Live</span> },
-    { id: 'settings', label: 'Settings', icon: <IcSettings /> },
+    { to: routes.home, end: true, label: 'Home', icon: <IcHome /> },
+    { to: routes.search, label: 'Search', icon: <IcSearch /> },
+    { to: routes.library, label: 'Library', icon: <IcLib /> },
+    { to: routes.lives, label: 'Lives', icon: <span style={{ fontSize: 14 }}>Live</span> },
+    { to: routes.settings, label: 'Settings', icon: <IcSettings /> },
   ];
 
   // Manage items are only shown when the user holds the artist role.
   const manageItems =
     user.role === 'artist'
       ? [
-          { id: 'artist-dashboard', label: 'Dashboard', icon: <IcDashboard /> },
-          { id: 'artist-tracks', label: 'My Tracks', icon: <IcTracks /> },
-          { id: 'artist-albums', label: 'Albums', icon: <IcMusic /> },
-          { id: 'artist-analytics', label: 'Analytics', icon: <IcChart /> },
-          { id: 'artist-upload', label: 'Upload +', icon: <IcUpload /> },
-          { id: 'artist-live', label: 'Do Live', icon: <span style={{ fontSize: 14 }}>Live</span> },
+          { to: routes.artistDashboard, end: true, label: 'Dashboard', icon: <IcDashboard /> },
+          { to: routes.artistTracks, label: 'My Tracks', icon: <IcTracks /> },
+          { to: routes.artistAlbums, label: 'Albums', icon: <IcMusic /> },
+          { to: routes.artistAnalytics, label: 'Analytics', icon: <IcChart /> },
+          { to: routes.artistUpload, label: 'Upload +', icon: <IcUpload /> },
+          { to: routes.artistLive, label: 'Do Live', icon: <span style={{ fontSize: 14 }}>Live</span> },
         ]
       : []; 
 
@@ -85,7 +83,7 @@ function MainSidebarComponent({ page, setPage, user }) {
       </div>
       <div className="sidebar-section" style={{ paddingTop: 4 }}>
         {discoverItems.map((item) => (
-          <SidebarNavItem key={item.id} item={item} isActive={page === item.id} onSelect={setPage} />
+          <SidebarNavItem key={item.to} item={item} />
         ))}
       </div>
 
@@ -106,7 +104,7 @@ function MainSidebarComponent({ page, setPage, user }) {
           </div>
           <div className="sidebar-section" style={{ paddingTop: 4 }}>
             {manageItems.map((item) => (
-              <SidebarNavItem key={item.id} item={item} isActive={page === item.id} onSelect={setPage} />
+              <SidebarNavItem key={item.to} item={item} />
             ))}
           </div>
         </>
@@ -125,14 +123,14 @@ function MainSidebarComponent({ page, setPage, user }) {
   );
 }
 
-function AdminSidebarComponent({ page, setPage, user }) {
+function AdminSidebarComponent({ user }) {
   const items = [
-    { id: 'admin-overview', label: 'Overview', icon: <IcOverview /> },
-    { id: 'admin-users', label: 'Usuarios', icon: <IcUsers /> },
-    { id: 'admin-content', label: 'Contenido', icon: <IcContent /> },
-    { id: 'admin-reports', label: 'Reportes', icon: <IcReport /> },
-    { id: 'admin-moderation', label: 'Moderación', icon: <IcShield /> },
-    { id: 'settings', label: 'Settings', icon: <IcSettings /> },
+    { to: routes.adminOverview, end: true, label: 'Overview', icon: <IcOverview /> },
+    { to: routes.adminUsers, label: 'Usuarios', icon: <IcUsers /> },
+    { to: routes.adminContent, label: 'Contenido', icon: <IcContent /> },
+    { to: routes.adminReports, label: 'Reportes', icon: <IcReport /> },
+    { to: routes.adminModeration, label: 'Moderación', icon: <IcShield /> },
+    { to: routes.settings, label: 'Settings', icon: <IcSettings /> },
   ];
 
   return (
@@ -156,10 +154,8 @@ function AdminSidebarComponent({ page, setPage, user }) {
       <div className="sidebar-section" style={{ paddingTop: 4 }}>
         {items.map((it) => (
           <SidebarNavItem
-            key={it.id}
+            key={it.to}
             item={it}
-            isActive={page === it.id}
-            onSelect={setPage}
           />
         ))}
       </div>
@@ -189,9 +185,10 @@ function AdminSidebarComponent({ page, setPage, user }) {
 }
 
 const sidebarItemPropType = PropTypes.shape({
+  end: PropTypes.bool,
   icon: PropTypes.node.isRequired,
-  id: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
+  to: PropTypes.string.isRequired,
 });
 
 const sidebarUserPropType = PropTypes.shape({
@@ -201,20 +198,14 @@ const sidebarUserPropType = PropTypes.shape({
 });
 
 SidebarNavItem.propTypes = {
-  isActive: PropTypes.bool.isRequired,
   item: sidebarItemPropType.isRequired,
-  onSelect: PropTypes.func.isRequired,
 };
 
 MainSidebarComponent.propTypes = {
-  page: PropTypes.string.isRequired,
-  setPage: PropTypes.func.isRequired,
   user: sidebarUserPropType.isRequired,
 };
 
 AdminSidebarComponent.propTypes = {
-  page: PropTypes.string.isRequired,
-  setPage: PropTypes.func.isRequired,
   user: sidebarUserPropType.isRequired,
 };
 
