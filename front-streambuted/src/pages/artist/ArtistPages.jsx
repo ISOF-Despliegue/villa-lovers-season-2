@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { IcMusic } from '../../components/icons/Icons';
 import { TrackRow } from '../../components/ui/TrackRow';
@@ -6,6 +7,7 @@ import { FilePicker } from '../../components/ui/FilePicker';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { catalogService } from '../../services/catalogService';
 import { getAssetUrl, mediaService } from '../../services/mediaService';
+import { routes } from '../../routes/appRoutes';
 import { formatDate } from '../../utils/formatters';
 
 function getErrorMessage(error) {
@@ -152,7 +154,8 @@ InlineState.propTypes = {
   title: PropTypes.string.isRequired,
 };
 
-export function ArtistDashboardPage({ user, onPlayTrack, currentTrack, setPage }) {
+export function ArtistDashboardPage({ user, onPlayTrack, currentTrack }) {
+  const navigate = useNavigate();
   const [tracks, setTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -208,7 +211,7 @@ export function ArtistDashboardPage({ user, onPlayTrack, currentTrack, setPage }
           <div className="section">
             <div className="section-header">
               <div className="section-title">Mis pistas recientes</div>
-              <button className="btn-ghost" style={{ fontSize: 13 }} onClick={() => setPage('artist-tracks')}>Ver todas</button>
+              <button className="btn-ghost" style={{ fontSize: 13 }} onClick={() => navigate(routes.artistTracks)}>Ver todas</button>
             </div>
             {tracks.length === 0 ? (
               <InlineState title="Aun no tienes pistas" message="Sube audio y portada para crear tu primera pista real." />
@@ -238,11 +241,11 @@ export function ArtistDashboardPage({ user, onPlayTrack, currentTrack, setPage }
 ArtistDashboardPage.propTypes = {
   currentTrack: artistTrackPropType,
   onPlayTrack: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
   user: artistUserPropType.isRequired,
 };
 
-export function MyTracksPage({ user, setPage, setEditTrack, toast }) {
+export function MyTracksPage({ user, toast }) {
+  const navigate = useNavigate();
   const [tracks, setTracks] = useState([]);
   const [albums, setAlbums] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -295,9 +298,9 @@ export function MyTracksPage({ user, setPage, setEditTrack, toast }) {
       <div className="my-tracks-header">
         <div className="page-title">Mis Pistas</div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn-ghost" onClick={() => setPage('artist-albums')}>Albums</button>
-          <button className="btn-ghost" onClick={() => setPage('artist-upload')}>+ Subir Pista</button>
-          <button className="btn-primary" onClick={() => setPage('artist-album')}>+ Crear Album</button>
+          <button className="btn-ghost" onClick={() => navigate(routes.artistAlbums)}>Albums</button>
+          <button className="btn-ghost" onClick={() => navigate(routes.artistUpload)}>+ Subir Pista</button>
+          <button className="btn-primary" onClick={() => navigate(routes.artistAlbumNew)}>+ Crear Album</button>
         </div>
       </div>
 
@@ -332,7 +335,7 @@ export function MyTracksPage({ user, setPage, setEditTrack, toast }) {
                     <td style={{ color: 'var(--t2)' }}>{formatDate(track.createdAt)}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button className="btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => { setEditTrack(track); setPage('artist-edit-track'); }}>Editar</button>
+                        <button className="btn-ghost" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => navigate(routes.artistTrackEdit(track.trackId))}>Editar</button>
                         <button className="btn-danger" style={{ padding: '5px 12px' }} onClick={() => setTrackToRetire(track)}>Retirar</button>
                       </div>
                     </td>
@@ -357,13 +360,12 @@ export function MyTracksPage({ user, setPage, setEditTrack, toast }) {
 }
 
 MyTracksPage.propTypes = {
-  setEditTrack: PropTypes.func.isRequired,
-  setPage: PropTypes.func.isRequired,
   toast: PropTypes.func.isRequired,
   user: artistUserPropType.isRequired,
 };
 
-export function MyAlbumsPage({ user, setPage, setUploadAlbumId, toast }) {
+export function MyAlbumsPage({ user, toast }) {
+  const navigate = useNavigate();
   const [albums, setAlbums] = useState([]);
   const [tracks, setTracks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -410,8 +412,7 @@ export function MyAlbumsPage({ user, setPage, setUploadAlbumId, toast }) {
   };
 
   const addTrackToAlbum = (albumId) => {
-    setUploadAlbumId(albumId);
-    setPage('artist-upload');
+    navigate(routes.artistUploadForAlbum(albumId));
   };
 
   const countTracks = (albumId) => tracks.filter(track => track.albumId === albumId).length;
@@ -421,8 +422,8 @@ export function MyAlbumsPage({ user, setPage, setUploadAlbumId, toast }) {
       <div className="my-tracks-header">
         <div className="page-title">Mis Albums</div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn-ghost" onClick={() => setPage('artist-tracks')}>Pistas</button>
-          <button className="btn-primary" onClick={() => setPage('artist-album')}>+ Crear Album</button>
+          <button className="btn-ghost" onClick={() => navigate(routes.artistTracks)}>Pistas</button>
+          <button className="btn-primary" onClick={() => navigate(routes.artistAlbumNew)}>+ Crear Album</button>
         </div>
       </div>
 
@@ -481,8 +482,6 @@ export function MyAlbumsPage({ user, setPage, setUploadAlbumId, toast }) {
 }
 
 MyAlbumsPage.propTypes = {
-  setPage: PropTypes.func.isRequired,
-  setUploadAlbumId: PropTypes.func.isRequired,
   toast: PropTypes.func.isRequired,
   user: artistUserPropType.isRequired,
 };
@@ -1129,7 +1128,7 @@ CreateAlbumPage.propTypes = {
   toast: PropTypes.func.isRequired,
 };
 
-export function EditTrackPage({ track, user, setPage, toast }) {
+export function EditTrackPage({ track, user, onCancel, onDone, toast }) {
   const [title, setTitle] = useState(track?.title ?? '');
   const [genre, setGenre] = useState(track?.genre ?? '');
   const [albumId, setAlbumId] = useState(track?.albumId ?? '');
@@ -1205,7 +1204,7 @@ export function EditTrackPage({ track, user, setPage, toast }) {
       await catalogService.updateTrack(track.trackId, payload);
       toast('Cambios guardados');
       setPendingAction(null);
-      setPage('artist-tracks');
+      onDone();
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -1221,7 +1220,7 @@ export function EditTrackPage({ track, user, setPage, toast }) {
       await catalogService.retireTrack(track.trackId);
       toast('Pista retirada');
       setPendingAction(null);
-      setPage('artist-tracks');
+      onDone();
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -1232,7 +1231,7 @@ export function EditTrackPage({ track, user, setPage, toast }) {
   return (
       <div className="page-inner">
         <div className="breadcrumb">
-        <button className="breadcrumb-link" onClick={() => setPage('artist-tracks')} type="button">
+        <button className="breadcrumb-link" onClick={onCancel} type="button">
           Mis Pistas
         </button>
         <span>/</span><span>Editar Pista</span>
@@ -1266,7 +1265,7 @@ export function EditTrackPage({ track, user, setPage, toast }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24 }}>
           <button className="btn-danger" onClick={() => setPendingAction({ type: 'retire' })} disabled={isSubmitting}>Retirar Track</button>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn-ghost" onClick={() => setPage('artist-tracks')}>Cancel</button>
+            <button className="btn-ghost" onClick={onCancel}>Cancel</button>
             <button className="btn-primary" onClick={requestSave} disabled={isSubmitting}>Save Changes</button>
           </div>
         </div>
@@ -1295,7 +1294,8 @@ export function EditTrackPage({ track, user, setPage, toast }) {
 }
 
 EditTrackPage.propTypes = {
-  setPage: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onDone: PropTypes.func.isRequired,
   toast: PropTypes.func.isRequired,
   track: artistTrackPropType.isRequired,
   user: artistUserPropType.isRequired,

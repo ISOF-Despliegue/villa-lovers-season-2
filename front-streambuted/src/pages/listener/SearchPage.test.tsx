@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { SearchPage } from "./ListenerPages";
 import { catalogService } from "../../services/catalogService";
 
@@ -11,6 +12,21 @@ jest.mock("../../services/catalogService", () => ({
   },
 }));
 
+function LocationProbe() {
+  const location = useLocation();
+
+  return <div data-testid="location">{location.pathname}</div>;
+}
+
+function renderWithRouter(ui: React.ReactNode) {
+  return render(
+    <MemoryRouter>
+      <LocationProbe />
+      {ui}
+    </MemoryRouter>
+  );
+}
+
 describe("SearchPage", () => {
   it("calls catalog search endpoint through service", async () => {
     const user = userEvent.setup();
@@ -20,13 +36,10 @@ describe("SearchPage", () => {
       tracks: [],
     });
 
-    render(
+    renderWithRouter(
       <SearchPage
         onPlayTrack={jest.fn()}
         currentTrack={null}
-        setPage={jest.fn()}
-        setViewAlbum={jest.fn()}
-        setViewArtist={jest.fn()}
       />
     );
 
@@ -90,13 +103,10 @@ describe("SearchPage", () => {
       updatedAt: "2026-01-01T00:00:00.000Z",
     });
 
-    render(
+    renderWithRouter(
       <SearchPage
         onPlayTrack={jest.fn()}
         currentTrack={null}
-        setPage={jest.fn()}
-        setViewAlbum={jest.fn()}
-        setViewArtist={jest.fn()}
       />
     );
 
@@ -108,5 +118,56 @@ describe("SearchPage", () => {
     expect(screen.getByText("Single")).toBeInTheDocument();
     expect(screen.getByText("Rock")).toBeInTheDocument();
     expect(screen.getByText("Album Morado")).toBeInTheDocument();
+  });
+
+  it("navigates to real album and artist routes from search results", async () => {
+    const user = userEvent.setup();
+    jest.mocked(catalogService.searchCatalog).mockResolvedValue({
+      artists: [
+        {
+          artistId: "artist-1",
+          displayName: "Artista Uno",
+          biography: null,
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      albums: [
+        {
+          albumId: "album-1",
+          artistId: "artist-1",
+          title: "Album Uno",
+          coverAssetId: null,
+          status: "PUBLICADO",
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-01-01T00:00:00.000Z",
+        },
+      ],
+      tracks: [],
+    });
+    jest.mocked(catalogService.getArtist).mockResolvedValue({
+      artistId: "artist-1",
+      displayName: "Artista Uno",
+      biography: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    renderWithRouter(
+      <SearchPage
+        onPlayTrack={jest.fn()}
+        currentTrack={null}
+      />
+    );
+
+    await user.type(screen.getByPlaceholderText("Busca canciones, artistas, albums..."), "uno");
+
+    await screen.findByText("Album Uno");
+
+    await user.click(screen.getAllByRole("button", { name: /Artista Uno/ })[0]);
+    expect(screen.getByTestId("location")).toHaveTextContent("/artists/artist-1");
+
+    await user.click(screen.getByRole("button", { name: /Album Uno/ }));
+    expect(screen.getByTestId("location")).toHaveTextContent("/albums/album-1");
   });
 });

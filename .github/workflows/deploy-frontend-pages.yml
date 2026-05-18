@@ -39,6 +39,8 @@ jobs:
           VITE_API_BASE_URL: https://api.migueleelg0106.me/api
           VITE_GATEWAY_URL: https://api.migueleelg0106.me
         run: npm run build:pages
+      - name: Verify SPA fallback
+        run: test -f dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
