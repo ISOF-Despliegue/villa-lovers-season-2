@@ -3,11 +3,12 @@ import type { ApiErrorPayload, ApiRequestOptions } from "../types/api.types";
 import { browserLogger } from "../utils/browserLogger";
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost";
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "https://api.migueleelg0106.me/api";
 
-const API_PREFIX = "/api/v1";
+const DEFAULT_API_PREFIX = "/api/v1";
 const API_BASE = new URL(`${API_BASE_URL}/`);
 const API_BASE_PATH = API_BASE.pathname === "/" ? "" : API_BASE.pathname.replace(/\/$/, "");
+const API_PREFIX = API_BASE_PATH === "/api" ? "/v1" : DEFAULT_API_PREFIX;
 
 function hasUnsafePathSegment(pathname: string): boolean {
   return pathname
@@ -48,9 +49,14 @@ function normalizeApiPath(path: string): string {
   }
 
   const normalizedPath = trimmedPath.startsWith("/") ? trimmedPath : `/${trimmedPath}`;
-  const withoutPrefix = normalizedPath.startsWith(API_PREFIX)
-    ? normalizedPath.slice(API_PREFIX.length)
-    : normalizedPath;
+  const withoutPrefix = [DEFAULT_API_PREFIX, API_PREFIX]
+    .filter((prefix, index, prefixes) => prefixes.indexOf(prefix) === index)
+    .reduce(
+      (pathWithoutPrefix, prefix) => pathWithoutPrefix.startsWith(prefix)
+        ? pathWithoutPrefix.slice(prefix.length)
+        : pathWithoutPrefix,
+      normalizedPath
+    );
   const pathname = withoutPrefix.split(/[?#]/)[0];
 
   if (!withoutPrefix.startsWith("/") || hasUnsafePathSegment(pathname)) {

@@ -15,4 +15,4 @@
 	url = https://github.com/UrielCendon/streambuted-streaming.git
 [submodule "services/live-service"]
 	path = services/live-service
-	url = https://github.com/UrielCendon/live-service.git
+	url = https://github.com/UrielCendon/streambuted-live.git
