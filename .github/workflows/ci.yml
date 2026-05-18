@@ -22,6 +22,8 @@ jobs:
         working-directory: front-streambuted
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -42,6 +44,8 @@ jobs:
         working-directory: services/catalog-service
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -59,6 +63,8 @@ jobs:
         working-directory: services/live-service
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -78,6 +84,8 @@ jobs:
           - services/streaming-service
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -96,6 +104,8 @@ jobs:
         working-directory: services/identity-service
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

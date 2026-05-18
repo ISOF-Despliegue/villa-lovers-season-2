@@ -1,4 +1,5 @@
-import { mediaService } from "./mediaService";
+import { getAssetUrl, mediaService } from "./mediaService";
+import { getMediaAssetUrl } from "./gatewayUrl";
 
 describe("mediaService", () => {
   beforeEach(() => {
@@ -31,5 +32,12 @@ describe("mediaService", () => {
     await mediaService.uploadAudio(file);
 
     expect(globalThis.fetch).toHaveBeenCalled();
+  });
+
+  it("builds media asset URLs from the public gateway without duplicating /api", () => {
+    const expectedUrl = "https://api.migueleelg0106.me/api/v1/media/assets/asset-1";
+
+    expect(getMediaAssetUrl("asset-1")).toBe(expectedUrl);
+    expect(getAssetUrl("asset-1")).toBe(expectedUrl);
   });
 });

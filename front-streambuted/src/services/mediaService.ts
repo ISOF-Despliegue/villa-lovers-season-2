@@ -1,7 +1,7 @@
-import { API_BASE_URL, apiRequest } from "./apiClient";
+import { apiRequest } from "./apiClient";
+import { getMediaAssetUrl } from "./gatewayUrl";
 import type { AssetUploadResponse, CatalogImageUsage } from "../types/media.types";
 
-const API_PREFIX = "/api/v1";
 const MAX_PROFILE_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_CATALOG_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 200 * 1024 * 1024;
@@ -67,7 +67,7 @@ function fileFormData(file: File): FormData {
 }
 
 export function getAssetUrl(assetId: string): string {
-  return `${API_BASE_URL}${API_PREFIX}/media/assets/${assetId}`;
+  return getMediaAssetUrl(assetId);
 }
 
 export const mediaService = {
