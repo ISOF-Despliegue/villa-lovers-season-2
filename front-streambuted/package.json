@@ -8,6 +8,7 @@
     "dev": "vite --host 0.0.0.0 --port 5173",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build:renderer": "vite build",
+    "build:pages": "npm run typecheck && npm run build:renderer && node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/404.html')\"",
     "build:electron": "tsc -p electron/tsconfig.json && node -e \"require('fs').copyFileSync('electron/package.json','dist-electron/package.json')\"",
     "build": "npm run typecheck && npm run build:renderer && npm run build:electron",
     "lint": "eslint .",

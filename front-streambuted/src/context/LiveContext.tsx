@@ -8,23 +8,9 @@ type LiveProviderProps = Readonly<{
   children: ReactNode;
 }>;
 
-function readStoredToken(): string | null {
-  return (
-    sessionStorage.getItem("accessToken") ||
-    sessionStorage.getItem("token") ||
-    sessionStorage.getItem("authToken") ||
-    sessionStorage.getItem("jwt") ||
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("token") ||
-    localStorage.getItem("authToken") ||
-    localStorage.getItem("jwt") ||
-    null
-  );
-}
-
 export function LiveProvider({ children }: LiveProviderProps) {
   const { accessToken } = useAuth();
-  const token = accessToken || readStoredToken();
+  const token = accessToken;
   const { socket, connectionState } = useLiveSocket(token);
   const artist = useArtistLive(socket);
 

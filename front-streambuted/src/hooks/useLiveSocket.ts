@@ -32,7 +32,7 @@ export function useLiveSocket(token: string | null): UseLiveSocketReturn {
 
     setConnectionState("connecting");
 
-    const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || "http://localhost";
+    const gatewayUrl = import.meta.env.VITE_GATEWAY_URL || "https://api.migueleelg0106.me";
     const socket = io(gatewayUrl, {
       path: LIVE_WS_PATH,
       transports: ["websocket", "polling"],
