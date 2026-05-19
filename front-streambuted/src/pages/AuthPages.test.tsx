@@ -96,10 +96,11 @@ describe("RegisterPage", () => {
         onVerifyRegistration={jest.fn()}
         onResendCode={jest.fn()}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
+
+    expect(screen.queryByRole("button", { name: "Sign up with Google" })).not.toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText("Enter your email"), "new@example.com");
     await user.type(screen.getByPlaceholderText("Choose a username"), "newuser");
@@ -134,7 +135,6 @@ describe("RegisterPage", () => {
         onVerifyRegistration={onVerifyRegistration}
         onResendCode={jest.fn()}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
@@ -177,7 +177,6 @@ describe("RegisterPage", () => {
         onVerifyRegistration={jest.fn()}
         onResendCode={onResendCode}
         onCancelVerification={onCancelVerification}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
@@ -227,7 +226,6 @@ describe("RegisterPage", () => {
           message: "Verification code sent.",
         })}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
@@ -259,7 +257,6 @@ describe("RegisterPage", () => {
         onVerifyRegistration={jest.fn()}
         onResendCode={jest.fn()}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
@@ -287,7 +284,6 @@ describe("RegisterPage", () => {
         onVerifyRegistration={onVerifyRegistration}
         onResendCode={jest.fn()}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );
@@ -333,7 +329,6 @@ describe("RegisterPage", () => {
         onVerifyRegistration={jest.fn()}
         onResendCode={jest.fn()}
         onCancelVerification={jest.fn()}
-        onGoogleRegister={jest.fn()}
         onBack={jest.fn()}
       />
     );

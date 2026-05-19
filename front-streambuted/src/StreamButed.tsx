@@ -1060,7 +1060,7 @@ export default function StreamButed() {
       <LoginPage
         onLogin={handleLogin}
         onRegister={() => navigate(routes.register)}
-        onGoogleLogin={() => handleGoogleAuth("login")}
+        onGoogleLogin={() => handleGoogleAuth("register")}
         externalError={oauthError}
       />
     );
@@ -1077,7 +1077,6 @@ export default function StreamButed() {
               onVerifyRegistration={handleVerifyRegistration}
               onResendCode={resendRegistrationCode}
               onCancelVerification={cancelRegistration}
-              onGoogleRegister={() => handleGoogleAuth("register")}
               onBack={() => navigate(routes.login)}
               externalError={oauthError}
             />
