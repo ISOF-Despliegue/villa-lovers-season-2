@@ -154,7 +154,6 @@ export function RegisterPage({
   onVerifyRegistration,
   onResendCode,
   onCancelVerification,
-  onGoogleRegister,
   onBack,
   externalError = '',
 }) {
@@ -424,15 +423,6 @@ export function RegisterPage({
           </button>
         )}
 
-        <button
-          className="btn-ghost"
-          style={{ width: '100%', marginBottom: 16 }}
-          type="button"
-          onClick={onGoogleRegister}
-        >
-          Sign up with Google
-        </button>
-
         <div className="auth-footer">
           Already have an account?{' '}
           <button className="auth-link" onClick={onBack} type="button">
@@ -559,7 +549,6 @@ RegisterPage.propTypes = {
   externalError: PropTypes.string,
   onBack: PropTypes.func.isRequired,
   onCancelVerification: PropTypes.func.isRequired,
-  onGoogleRegister: PropTypes.func.isRequired,
   onResendCode: PropTypes.func.isRequired,
   onStartRegistration: PropTypes.func.isRequired,
   onVerifyRegistration: PropTypes.func.isRequired,
